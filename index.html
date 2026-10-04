@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Car Booking</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#111 0,#292929 28%,#f3f4f6 28%);color:#111}
+.container{max-width:520px;margin:auto;min-height:100vh;background:#fff;box-shadow:0 0 30px rgba(0,0,0,.18)}
+.header{background:linear-gradient(135deg,#0b0b0b,#252525);color:#fff;padding:30px 22px 26px;border-bottom:3px solid #d4af37}
+.header h1{margin:0;font-size:27px;letter-spacing:.5px}.header p{margin:8px 0 0;color:#ddd;font-size:14px}
+.header:after{content:"PREMIUM • RELIABLE • COMFORT";display:block;margin-top:15px;color:#d4af37;font-size:11px;font-weight:bold;letter-spacing:1.5px}
+.card{margin:16px;padding:20px;border-radius:20px;border:1px solid #e3e3e3;box-shadow:0 8px 25px rgba(0,0,0,.08)}
+label{display:block;font-weight:bold;margin:16px 0 7px;font-size:14px}
+input,select{width:100%;padding:15px;border:1px solid #ccc;border-radius:12px;font-size:16px;background:#fff;outline:none}
+input:focus,select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+button{width:100%;padding:16px;border:0;border-radius:12px;font-size:17px;font-weight:bold;margin-top:16px;cursor:pointer;transition:.2s}
+button:active{transform:scale(.98)}
+.calculate{background:#111;color:#fff}.whatsapp{background:#20b858;color:#fff}.call{background:#eee;color:#111}
+.result{display:none;margin-top:20px;padding:18px;background:#fafafa;border-radius:16px;border:1px solid #e5e5e5}
+.estimated{font-size:14px;color:#666}.fare{font-size:34px;font-weight:bold;margin:5px 0 18px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #ddd}
+.value{text-align:right;font-weight:bold}.notice{margin-top:15px;padding:12px;background:#fff8df;border:1px solid #ead58a;border-radius:10px;font-size:13px;line-height:1.5}
+.hidden{display:none}.footer{text-align:center;padding:22px;color:#777;font-size:13px;background:#fafafa}.footer strong{color:#111}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header"><h1>🚗 PREMIUM CAR SERVICE</h1><p>Hyundai i20 • AKHILESH KUMAR</p></div>
+<div class="card">
+<label>कहाँ से?</label><input id="pickup" type="text" placeholder="Pickup Location">
+<label>कहाँ तक?</label><input id="drop" type="text" placeholder="Drop Location">
+<label>One-way दूरी (KM)</label><input id="distance" type="number" min="1" step="0.1" placeholder="जैसे 40">
+<label>कब जाना है?</label>
+<select id="when" onchange="changeTravelType()">
+<option value="now">अभी जाना है</option><option value="later">बाद में जाना है</option>
+</select>
+<div id="laterBox" class="hidden">
+<label>तारीख</label><input id="date" type="date">
+<label>समय</label><input id="time" type="time">
+</div>
+<label>आपका नाम</label><input id="name" type="text" placeholder="पूरा नाम">
+<label>मोबाइल नंबर</label><input id="phone" type="tel" maxlength="10" inputmode="numeric" placeholder="10 अंकों का मोबाइल नंबर">
+<button class="calculate" onclick="calculateFare()">💰 किराया देखें</button>
+
+<div id="result" class="result">
+<div class="estimated">अनुमानित किराया</div>
+<div id="fare" class="fare">₹0</div>
+<div class="row"><span>रूट</span><span id="route" class="value"></span></div>
+<div class="row"><span>कुल दूरी</span><span id="totalDistance" class="value"></span></div>
+<div class="row"><span>कब जाना है</span><span id="travelDate" class="value"></span></div>
+<div class="row"><span>गाड़ी</span><span class="value">Hyundai i20</span></div>
+<div class="notice">यह केवल अनुमानित किराया है। अंतिम किराया और बुकिंग दूरी तथा गाड़ी की उपलब्धता चेक करने के बाद AKHILESH KUMAR द्वारा कन्फर्म की जाएगी।</div>
+<button class="whatsapp" onclick="sendWhatsApp()">💬 WhatsApp पर Booking भेजें</button>
+<button class="call" onclick="callNow()">📞 कॉल करें</button>
+</div>
+</div>
+<div class="footer">Booking Contact: <strong>9006224719</strong></div>
+</div>
+
+<script>
+function changeTravelType(){
+  document.getElementById("laterBox").classList.toggle("hidden", document.getElementById("when").value !== "later");
+}
+function getFare(oneWay){
+  let extraCharge;
+  if(oneWay<=20) extraCharge=500;
+  else if(oneWay<=50) extraCharge=1000;
+  else if(oneWay<=100) extraCharge=1500;
+  else if(oneWay<=200) extraCharge=2000;
+  else extraCharge=5000;
+  return Math.round(oneWay*2*10+extraCharge);
+}
+function calculateFare(){
+  const pickup=document.getElementById("pickup").value.trim();
+  const drop=document.getElementById("drop").value.trim();
+  const distance=parseFloat(document.getElementById("distance").value);
+  const name=document.getElementById("name").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const when=document.getElementById("when").value;
+
+  if(!pickup||!drop||!distance||distance<=0||!name||!/^[6-9][0-9]{9}$/.test(phone)){
+    alert("कृपया सभी जानकारी सही-सही भरें।"); return;
+  }
+
+  let travelText="अभी जाना है";
+  if(when==="later"){
+    const date=document.getElementById("date").value;
+    const time=document.getElementById("time").value;
+    if(!date||!time){alert("कृपया तारीख और समय चुनें।");return;}
+    const dateObj=new Date(date+"T"+time);
+    if(isNaN(dateObj.getTime())){alert("कृपया सही तारीख और समय चुनें।");return;}
+    travelText=dateObj.toLocaleString("hi-IN",{dateStyle:"medium",timeStyle:"short"});
+  }
+
+  const fare=getFare(distance);
+  document.getElementById("fare").innerText="₹"+fare.toLocaleString("en-IN");
+  document.getElementById("route").innerText=pickup+" → "+drop;
+  document.getElementById("totalDistance").innerText=(distance*2).toFixed(1)+" KM";
+  document.getElementById("travelDate").innerText=travelText;
+  document.getElementById("result").style.display="block";
+  document.getElementById("result").scrollIntoView({behavior:"smooth"});
+}
+function sendWhatsApp(){
+  const pickup=document.getElementById("pickup").value;
+  const drop=document.getElementById("drop").value;
+  const distance=document.getElementById("distance").value;
+  const name=document.getElementById("name").value;
+  const phone=document.getElementById("phone").value;
+  const fare=document.getElementById("fare").innerText;
+  const travel=document.getElementById("travelDate").innerText;
+
+  const message=`🚗 PREMIUM CAR SERVICE Request
+
+👤 नाम: ${name}
+
+📞 मोबाइल: ${phone}
+
+📍 Pickup: ${pickup}
+
+📍 Drop: ${drop}
+
+📏 One-way दूरी: ${distance} KM
+
+📏 कुल दूरी: ${(parseFloat(distance)*2).toFixed(1)} KM
+
+🕐 कब जाना है: ${travel}
+
+💰 अनुमानित किराया: ${fare}
+
+🚗 गाड़ी: Hyundai i20
+
+कृपया दूरी और गाड़ी की उपलब्धता चेक करके Booking Confirm करें।`;
+
+  window.open("https://wa.me/919006224719?text="+encodeURIComponent(message),"_blank");
+}
+function callNow(){window.location.href="tel:9006224719";}
+</script>
+</body>
+</html>
